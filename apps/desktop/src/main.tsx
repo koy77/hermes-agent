@@ -30,6 +30,7 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router'
 
 import App from './app'
+import { installTabOpenPerf } from './app/chat/tab-open-perf'
 import { RootErrorBoundary } from './components/error-boundary'
 import { HapticsProvider } from './components/haptics-provider'
 import { RootTooltipProvider } from './components/ui/tooltip'
@@ -92,6 +93,10 @@ if (winParam === 'overlay') {
   // main window's visibility state to :root so decorative infinite
   // animations stop producing frames when nobody can see them.
   installRendererAnimationPauseState()
+
+  // Tab-open latency samples (see app/chat/tab-open-perf.ts). Installed before
+  // the first render so the very first session open is already measured.
+  installTabOpenPerf()
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

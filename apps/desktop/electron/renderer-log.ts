@@ -59,24 +59,37 @@ function isConsoleMessageDetails(value: unknown): value is ConsoleMessageDetails
   )
 }
 
-/** Format errors and Bot Chat wake warnings into one line, or null otherwise.
- *  Hermes's pinned Electron line puts severity and source metadata on the
- *  event object itself; accepting one
- *  listener argument also avoids Electron's deprecated positional
- *  `(event, level, message, line, sourceId)` path. */
+/** Format errors, Bot Chat wake warnings and renderer perf probes into one
+ *  line, or null otherwise. Hermes's pinned Electron 40.x line puts severity
+ *  and source metadata on the event object itself; accepting one listener
+ *  argument also avoids Electron's deprecated positional
+ *  `(event, level, message, line, sourceId)` path.
+ *
+ *  Errors are the default. Two extra passthroughs: the `[bot-wake] ` warning the
+ *  Bot Chat scheduler emits, and the `[perf]` prefix the renderer's latency
+ *  probes emit at info level (app/chat/tab-open-perf.ts) — promoting those to
+ *  `console.error` would put slow-but-healthy opens in crash triage, and
+ *  dropping them keeps the numbers where nobody can read them. */
 export function formatRendererConsoleLine(label: string, details: ConsoleMessageEventLike): string | null {
   if (!isConsoleMessageDetails(details)) {
     return null
   }
 
-  // Retain the existing quiet console policy outside this support diagnostic.
+  // Retain the existing quiet console policy outside these support diagnostics.
   const isWakeWarning = details.level === 'warning' && details.message.startsWith('[bot-wake] ')
 
-  if (details.level !== 'error' && !isWakeWarning) {
+  if (details.level !== 'error' && !isWakeWarning && !isPerfConsoleMessage(details.message)) {
     return null
   }
 
   return `[renderer console:${label}] ${details.message} (${details.sourceId}:${String(details.lineNumber)})`
+}
+
+/** Marker every renderer perf probe prefixes its console lines with. */
+export const PERF_CONSOLE_PREFIX = '[perf]'
+
+export function isPerfConsoleMessage(message: string): boolean {
+  return message.startsWith(PERF_CONSOLE_PREFIX)
 }
 
 /** Attach the diagnostic console hook to a renderer window. `log` is the
