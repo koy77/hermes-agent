@@ -41,7 +41,12 @@ export function useZoneHeaderLayout({
   const compactTabs = touchTitlebar && narrow && shown.some(isSessionStripPane)
   // The compact picker needs a full touch row: the titlebar's fit threshold
   // also has to accommodate the drag handle and the separate new-tab target.
-  const tabsBelowControls = topEdge && (compactTabs || sidebarGroup || measuredBelowControls)
+  // Local customization: `sidebarGroup` no longer forces the strip below the
+  // window controls. It did, even when the strip fit between them, which left a
+  // titlebar-high empty band above SESSIONS | BOTS. The measurement answers it
+  // for every zone (`rect.width - left - right < 120`) — keep the input for the
+  // caller's shape and let the measurement decide.
+  const tabsBelowControls = topEdge && (compactTabs || measuredBelowControls)
 
   return {
     compactTabs,

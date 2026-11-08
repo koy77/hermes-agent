@@ -472,6 +472,10 @@ export function TreeGroup({
     topEdge
   })
 
+  // Local customization: the sidebar group no longer forces its strip BELOW the
+  // window controls (see `useZoneHeaderLayout` in zone-header-layout.ts) — that
+  // left a titlebar-high empty band above SESSIONS | BOTS.
+
   const pageHeader = paneChrome(active).headerContent
 
   // What the strip's "+" makes. The pane you are LOOKING AT answers first (a
