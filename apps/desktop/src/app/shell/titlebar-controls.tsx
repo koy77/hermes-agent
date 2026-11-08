@@ -307,13 +307,18 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
     )
   }
 
+  // Local customization: the sidebar toggle moved to the RIGHT cluster, beside
+  // the right-panel toggle, so the left band holds nothing but tabs and page
+  // chrome. That frees the row the toggle used to occupy above the session
+  // list. `appActionsSide === 'left'` still parks the app actions on the left;
+  // the panel toggles stay together on the right either way.
   const visibleLeftTools = (
-    appActionsSide === 'left' ? [sidebarTool, ...systemTools, ...leftTools] : [sidebarTool, ...leftTools]
+    appActionsSide === 'left' ? [...systemTools, ...leftTools] : [...leftTools]
   ).filter(visibleTool)
 
   const visibleSystemTools = appActionsSide === 'right' ? systemTools.filter(visibleTool) : []
   const visiblePaneTools = tools.filter(visibleTool)
-  const visibleRightFixedTools = [flipTool, rightSidebarTool].filter(visibleTool)
+  const visibleRightFixedTools = [flipTool, sidebarTool, rightSidebarTool].filter(visibleTool)
 
   return (
     <>
