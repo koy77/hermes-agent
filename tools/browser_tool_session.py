@@ -8,6 +8,7 @@ import base64
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import uuid
@@ -62,6 +63,24 @@ def _apply_chromium_sandbox_args(browser_env: dict[str, str]) -> None:
             and _needs_chromium_sandbox_bypass()):
         _bt.logger.debug("browser: sandbox bypass needed (root/docker/AppArmor userns) — injecting --no-sandbox")
         browser_env["AGENT_BROWSER_ARGS"] = ",".join(CHROMIUM_SANDBOX_BYPASS_ARGS)
+
+
+_SILENT_BROWSER_ARGS = ("--mute-audio", "--autoplay-policy=document-user-activation-required")
+
+
+def _apply_audio_silence_args(browser_env: dict[str, str]) -> None:
+    """An agent browser must never make noise: mute output and refuse gesture-less autoplay.
+
+    The browser runs headless (invisible) by default, so a tab that starts playing media is
+    audible with no visible source — the user hears YouTube/ads and cannot find or stop them.
+    Merged into AGENT_BROWSER_ARGS, keeping any flags the caller already set.
+    """
+    raw = browser_env.get("AGENT_BROWSER_ARGS") or ""
+    parts = [p.strip() for p in re.split(r"[,\n]", raw) if p.strip()]
+    for flag in _SILENT_BROWSER_ARGS:
+        if flag not in parts:
+            parts.append(flag)
+    browser_env["AGENT_BROWSER_ARGS"] = ",".join(parts)
 
 
 def windows_headless_browser_options(browser_env: dict[str, str],
@@ -766,6 +785,7 @@ def _spawn_and_collect(
                              command)
     else:
         _apply_chromium_sandbox_args(browser_env)
+        _apply_audio_silence_args(browser_env)  # an invisible tab must never be audible
         # #64867: a local Chromium launch (no --cdp attach) must stay headless on
         # Windows; headed mode is the intentional opt-out (dispatch adds --headed).
         if not session_info.get("cdp_url") and not _cloud._is_headed_mode():

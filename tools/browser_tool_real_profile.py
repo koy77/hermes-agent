@@ -147,6 +147,8 @@ _REAL_PROFILE_CHROME_FLAGS = (
     "--disable-background-networking", "--disable-component-update", "--disable-default-apps",
     "--disable-hang-monitor", "--disable-popup-blocking", "--disable-prompt-on-repost",
     "--disable-sync", "--disable-features=Translate", "--no-startup-window",
+    "--mute-audio",
+    "--autoplay-policy=document-user-activation-required",
 )
 
 
