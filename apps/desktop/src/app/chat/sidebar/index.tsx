@@ -205,6 +205,12 @@ const NON_SESSION_LOAD_STEP = 10
 // screen — has the connection to itself first.
 const PROJECT_TREE_WARM_MS = 2_000
 
+// Local customization: the session list owns its vertical space. The search
+// field and the Pinned section are hidden until the owner asks for them back —
+// flip a flag here, no other edit needed.
+const SHOW_SESSION_SEARCH = false
+const SHOW_PINNED_SESSIONS = false
+
 // A row's `tier` is the one mode it belongs to (Simple keeps the setup rows,
 // Advanced adds the readouts); the list filters once, nothing is passed down.
 const SIDEBAR_NAV: SidebarNavItem[] = [
@@ -1694,7 +1700,7 @@ export function ChatSidebar({
 
         <SidebarStorageCorruptNotice />
 
-        {showSessionSections && (
+        {showSessionSections && SHOW_SESSION_SEARCH && (
           <div className="shrink-0 px-2 pb-1 pt-1">
             <SearchField
               aria-label={s.searchAria}
@@ -1742,7 +1748,7 @@ export function ChatSidebar({
               />
             )}
 
-            {!trimmedQuery && (
+            {SHOW_PINNED_SESSIONS && !trimmedQuery && (
               <SidebarSessionsSection
                 activeSessionId={activeSidebarSessionId}
                 // Inbox style rides whichever view is active — pinned rows
