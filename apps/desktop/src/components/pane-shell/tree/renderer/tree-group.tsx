@@ -308,8 +308,12 @@ export function TreeGroup({
 
   const active = paneFor(activeId)
   const isEmpty = shown.length === 0
-  const sidebarGroup = !node.panes.some(id => id === 'workspace' || paneChrome(paneFor(id)).placement === 'main')
-  const tabsBelowControls = topEdge && (sidebarGroup || measuredBelowControls)
+  // Local customization: the sidebar group used to force its strip BELOW the
+  // window controls even when the strip fit between them, which left a
+  // titlebar-high empty band above SESSIONS | BOTS. The measurement already
+  // answers this for every zone (`rect.width - left - right < 120`), so let it
+  // decide here too: the strip lands directly under the titlebar.
+  const tabsBelowControls = topEdge && measuredBelowControls
   const tabsInTitlebar = topEdge && !tabsBelowControls
   const pageHeader = paneChrome(active).headerContent
 
