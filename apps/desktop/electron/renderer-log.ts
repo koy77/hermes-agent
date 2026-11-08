@@ -60,16 +60,28 @@ function isConsoleMessageDetails(value: unknown): value is ConsoleMessageDetails
 }
 
 /** Format Electron's canonical console-message event object into one line, or
- *  null for non-error or malformed events. Hermes's pinned Electron 40.x line
- *  puts severity and source metadata on the event object itself; accepting one
- *  listener argument also avoids Electron's deprecated positional
- *  `(event, level, message, line, sourceId)` path. */
+ *  null for events desktop.log does not want. Hermes's pinned Electron 40.x
+ *  line puts severity and source metadata on the event object itself; accepting
+ *  one listener argument also avoids Electron's deprecated positional
+ *  `(event, level, message, line, sourceId)` path.
+ *
+ *  Errors are the default. The one extra passthrough is the `[perf]` prefix the
+ *  renderer's latency probes emit at info level (app/chat/tab-open-perf.ts):
+ *  promoting those to `console.error` would put slow-but-healthy opens in crash
+ *  triage, and dropping them keeps the numbers where nobody can read them. */
 export function formatRendererConsoleLine(label: string, details: ConsoleMessageEventLike): string | null {
-  if (!isConsoleMessageDetails(details) || details.level !== 'error') {
+  if (!isConsoleMessageDetails(details) || (details.level !== 'error' && !isPerfConsoleMessage(details.message))) {
     return null
   }
 
   return `[renderer console:${label}] ${details.message} (${details.sourceId}:${String(details.lineNumber)})`
+}
+
+/** Marker every renderer perf probe prefixes its console lines with. */
+export const PERF_CONSOLE_PREFIX = '[perf]'
+
+export function isPerfConsoleMessage(message: string): boolean {
+  return message.startsWith(PERF_CONSOLE_PREFIX)
 }
 
 /** Attach the error-level console hook to a renderer window. `log` is the

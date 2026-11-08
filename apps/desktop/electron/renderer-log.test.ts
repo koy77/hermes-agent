@@ -41,6 +41,26 @@ describe('formatRendererConsoleLine', () => {
     expect(formatRendererConsoleLine('main', { level: 'info', message: 'x', sourceId: 's', lineNumber: 1 })).toBeNull()
   })
 
+  it('keeps the [perf] passthrough at info level', () => {
+    const line = formatRendererConsoleLine('main', {
+      level: 'info',
+      message: '[perf] tab-open {"total":5120}',
+      sourceId: 'file:///app/index.js',
+      lineNumber: 1
+    })
+
+    expect(line).toBe('[renderer console:main] [perf] tab-open {"total":5120} (file:///app/index.js:1)')
+  })
+
+  it('keeps [perf] at warning level but not other warnings', () => {
+    expect(
+      formatRendererConsoleLine('main', { level: 'warning', message: '[perf] x', sourceId: 's', lineNumber: 1 })
+    ).not.toBeNull()
+    expect(
+      formatRendererConsoleLine('main', { level: 'warning', message: 'warn', sourceId: 's', lineNumber: 1 })
+    ).toBeNull()
+  })
+
   it('drops malformed event objects', () => {
     expect(formatRendererConsoleLine('main', {})).toBeNull()
   })
